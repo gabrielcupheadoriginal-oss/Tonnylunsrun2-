@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Tonny Luns Run — Céu de HollyTonny v3.0</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Courier New',monospace;image-rendering:pixelated;user-select:none;-webkit-tap-highlight-color:transparent}
+body{background:#0f0f1a;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:10px}
+h1,h2,h3{text-align:center}
+h1{color:#66ccff;text-shadow:0 0 8px #66ccff;margin:10px 0;font-size:20px}
+h2{color:#ffcc00;font-size:18px;margin-bottom:10px}
+.tela{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a1a2e;border:3px solid #66ccff;border-radius:8px;padding:20px;z-index:100;width:94%;max-width:450px;max-height:95vh;overflow-y:auto}
+.escondida{display:none!important}
+.btn{background:#66ccff;color:#000;border:3px solid #000;padding:10px 20px;font-size:15px;font-weight:bold;border-radius:4px;cursor:pointer;margin:4px;box-shadow:3px 3px 0 rgba(0,0,0,.5);transition:all .08s}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 rgba(0,0,0,.5)}
+.btn-verde{background:#4ade80}.btn-vermelho{background:#ef4444}.btn-amarelo{background:#ffcc00}.btn-cinza{background:#444;color:#aaa}
+canvas{background:linear-gradient(180deg,#0f1a2e 0%,#1a2a4a 40%,#2a3a6a 100%);border:3px solid #333;border-radius:4px;display:block;margin:0 auto;max-width:100%}
+.interface{position:fixed;top:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.75);padding:8px 12px;border-radius:6px;border:2px solid #66ccff;z-index:10}
+.barra-vida{width:150px;height:14px;background:#333;border:2px solid #555;border-radius:2px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px}
+.vida-jogador{height:100%;background:linear-gradient(90deg,#ef4444,#ff6666);transition:width .3s}
+.barra-chefe{width:200px;height:16px;background:#222;border:2px solid #ff4444;border-radius:2px;overflow:hidden;margin:8px auto;display:block}
+.vida-chefe{height:100%;background:linear-gradient(90deg,#ff2222,#ff6644);width:100%;transition:width .3s}
+.controles{position:fixed;bottom:15px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:20}
+.ctrl{width:58px;height:58px;background:#222;border:3px solid #66ccff;border-radius:50%;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 6px rgba(102,204,255,.3)}
+.ctrl:active{background:#66ccff;color:#000}
+.mensagem{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);border:2px solid #ffcc00;padding:10px 16px;border-radius:4px;color:#fff;font-size:14px;z-index:15;max-width:300px;text-align:center;transition:opacity .3s}
+.mensagem.sair{opacity:0}
+.cena-cinema{background:#000;position:absolute;top:0;left:0;width:100%;height:100%;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+.cena-texto{font-size:16px;line-height:1.8;max-width:350px;margin-bottom:20px}
+.cena-animacao{font-size:48px;margin:20px 0}
+.grade-fases{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:15px 0}
+.botao-fase{background:#222;border:2px solid #444;border-radius:4px;padding:8px;text-align:center;cursor:pointer;font-size:13px}
+.botao-fase.desbloqueada{border-color:#4ade80;color:#4ade80}.botao-fase.bloqueada{color:#555;border-color:#333;cursor:not-allowed}.botao-fase.atual{border-color:#ffcc00;box-shadow:0 0 6px #ffcc00}
+.loja-itens{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:15px 0}
+.item-loja{background:#222;border:2px solid #444;border-radius:4px;padding:10px;text-align:center}
+.preco{color:#ffcc00;margin-top:5px;font-size:14px}
+.dica{color:#888;font-size:12px;margin-top:8px}
+.estrelas{font-size:20px;margin:5px 0}
+.progresso-perseguicao{width:100%;height:12px;background:#222;border:2px solid #ff6600;border-radius:2px;margin:10px 0}
+.barra-perseguicao{height:100%;background:linear-gradient(90deg,#ff6600,#ffcc00);width:0%;transition:width .2s}
+.distancia-roy{text-align:center;font-size:14px;color:#ff6600;margin-bottom:5px}
+</style>
+</head>
+<body>
+
+<!-- MENU PRINCIPAL -->
+<div id="menu" class="tela">
+  <h1>🐰 TONNY LUNS RUN</h1>
+  <h2 style="color:#66ccff">Céu de HollyTonny — v3.0</h2>
+  <p style="margin:12px 0">Moedas: <span id="menu-moedas">0</span> 🪙 | Estrelas: <span id="menu-estrelas">0</span> ⭐</p>
+  <button class="btn btn-verde" id="b-jogar">▶ JOGAR</button><br>
+  <button class="btn" id="b-capitulos">🗺️ CAPÍTULOS</button><br>
+  <button class="btn" id="b-loja">🛒 LOJA</button><br>
+  <button class="btn" id="b-desafios">🏆 DESAFIOS</button><br>
+  <button class="btn" id="b-historia">📖 HISTÓRIA</button><br>
+  <button class="btn btn-cinza" id="b-salvar">💾 SALVAR E SAIR</button><br>
+  <p class="dica">Criador: Gabriel Enedino · Kplor Studio © 2026</p>
+</div>
+
+<!-- CAPÍTULOS -->
+<div id="capitulos" class="tela escondida">
+  <h2>🗺️ CAPÍTULOS</h2>
+  <h3 style="color:#4ade80;margin:10px 0">Capítulo 1 — Terra de HollyTonny (1–100)</h3>
+  <h3 style="color:#66ccff;margin:10px 0">☁️ Capítulo 2 — Céu de HollyTonny (101–110)</h3>
+  <div class="grade-fases" id="grade-ceu"></div>
+  <h3 style="color:#ff6600;margin:15px 0">🦝 Capítulo Especial — O Roubo do Caixão</h3>
+  <button class="btn btn-amarelo" id="b-roubo-caixao">🎬 INICIAR: O Roubo do Caixão</button><br><br>
+  <button class="btn" id="b-voltar-cap">⬅️ VOLTAR</button>
+</div>
+
+<!-- LOJA -->
+<div id="loja" class="tela escondida">
+  <h2>🛒 LOJA</h2>
+  <p style="margin-bottom:10px">Suas moedas: <span id="loja-moedas">0</span> 🪙</p>
+  <h3 style="color:#66ccff">🔫 ARMAS NOVAS</h3>
+  <div class="loja-itens">
+    <div class="item-loja">
+      <div>🫧 Lançador de Bolhas</div>
+      <div class="preco">50 🪙</div>
+      <button class="btn btn-verde" data-item="bolhas" data-preco="50">COMPRAR</button>
+    </div>
+    <div class="item-loja">
+      <div>☁️ Lançador de Espuma</div>
+      <div class="preco">75 🪙</div>
+      <button class="btn btn-verde" data-item="espuma" data-preco="75">COMPRAR</button>
+    </div>
+    <div class="item-loja">
+      <div>⭐ Atirador de Estrelas</div>
+      <div class="preco">100 🪙</div>
+      <button class="btn btn-verde" data-item="estrelas" data-preco="100">COMPRAR</button>
+    </div>
+    <div class="item-loja">
+      <div>💨 Lançador de Vento</div>
+      <div class="preco">150 🪙</div>
+      <button class="btn btn-verde" data-item="vento" data-preco="150">COMPRAR</button>
+    </div>
+  </div>
+  <h3 style="color:#ffcc00;margin-top:15px">🐰 SKINS</h3>
+  <div class="loja-itens">
+    <div class="item-loja">
+      <div>🎒 Explorador</div>
+      <div class="preco">200 🪙</div>
+      <button class="btn btn-verde" data-item="skin-explorador" data-preco="200">COMPRAR</button>
+    </div>
+    <div class="item-loja">
+      <div>☁️ Celeste</div>
+      <div class="preco">250 🪙</div>
+      <button class="btn btn-verde" data-item="skin-celeste" data-preco="250">COMPRAR</button>
+    </div>
+    <div class="item-loja">
+      <div>✈️ James Piloto</div>
+      <div class="preco">300 🪙</div>
+      <button class="btn btn-verde" data-item="skin-piloto" data-preco="300">COMPRAR</button>
+    </div>
+    <div class="item-loja">
+      <div>💎 Deise Aventureira</div>
+      <div class="preco">350 🪙</div>
+      <button class="btn btn-verde" data-item="skin-deise" data-preco="350">COMPRAR</button>
+    </div>
+  </div>
+  <button class="btn" id="b-voltar-loja">⬅️ VOLTAR</button>
+</div>
+
+<!-- DESAFIOS -->
+<div id="desafios" class="tela escondida">
+  <h2>🏆 MODOS DE DESAFIO</h2>
+  <div class="loja-itens">
+    <div class="item-loja">
+      <div>🌤️ Desafio Aéreo</div>
+      <p class="dica">Atravesse sem cair!</p>
+      <button class="btn btn-verde" id="b-desafio-aereo">JOGAR</button>
+    </div>
+    <div class="item-loja">
+      <div>🎈 Corrida dos Balões</div>
+      <p class="dica">Chegue antes do tempo!</p>
+      <button class="btn btn-verde" id="b-corrida-baloes">JOGAR</button>
+    </div>
+    <div class="item-loja">
+      <div>🔍 Caça aos Segredos</div>
+      <p class="dica">Encontre os escondidos!</p>
+      <button class="btn btn-verde" id="b-caca-segredos">JOGAR</button>
+    </div>
+    <div class="item-loja">
+      <div>⛈️ Tempestade Difícil</div>
+      <p class="dica">Vento forte e obstáculos rápidos!</p>
+      <button class="btn btn-verde" id="b-tempestade">JOGAR</button>
+    </div>
+  </div>
+  <button class="btn" id="b-voltar-desafios">⬅️ VOLTAR</button>
+</div>
+
+<!-- CENA CINEMA — O ROUBO DO CAIXÃO -->
+<div id="cena-roubo" class="tela escondida" style="background:#000;border-color:#333">
+  <div class="cena-cinema" style="position:relative;transform:none;top:0;left:0;width:100%;height:100%">
+    <div class="cena-animacao" id="cena-sprite">🌙</div>
+    <div class="cena-texto" id="cena-texto">
+      Março de 1980.<br><br>
+      HollyTonny está silenciosa.<br>
+      O céu está escuro...
+    </div>
+    <button class="btn btn-cinza" id="b-pular-cena">⏭️ PULAR CENA</button>
+    <button class="btn" id="b-proxima-cena">CONTINUAR ➡️</button>
+  </div>
+</div>
+
+<!-- PERSEGUIÇÃO A ROY -->
+<div id="perseguicao" class="escondida">
+  <div class="interface">
+    <div>❤️ <span id="pers-vida">3</span> | 🪙 <span id="pers-moedas">0</span> | Segredos: <span id="pers-segredos">0</span>/5</div>
+    <div class="distancia-roy">🦝 Roy está: <span id="distancia-valor">DISTANTE</span></div>
+    <div class="progresso-perseguicao">
+      <div class="barra-perseguicao" id="barra-perseg"></div>
+    </div>
+  </div>
+  <canvas id="cv-perseg" width="480" height="320"></canvas>
+  <div class="controles">
+    <button class="ctrl" id="p-esq">⬅</button>
+    <button class="ctrl" id="p-dir">➡</button>
+    <button class="ctrl" id="p-pular">⬆</button>
+    <button class="ctrl" id="p-dash">💨</button>
+    <button class="ctrl" id="p-sair">⏸</button>
+  </div>
+</div>
+
+<!-- JOGO PRINCIPAL -->
+<div id="jogo" class="escondida">
+  <div class="interface">
+    <div>Fase <span id="num-fase">101</span> — <span id="nome-fase">A Subida para o Céu</span></div>
+    <div>❤️ <span id="vida">3</span> | 🪙 <span id="moedas-fase">0</span> | ⭐ <span id="estrelas-fase">0</span>/3</div>
+    <div id="barra-chefe-container" style="display:none">
+      <div style="text-align:center;font-size:12px;color:#ff4444" id="nome-chefe">Guardião das Nuvens</div>
+      <div class="barra-chefe"><div class="vida-chefe" id="vida-chefe"></div></div>
+    </div>
+    <div id="veiculo-info" style="display:none;color:#66ccff;font-size:12px">🚁 No veículo — pressione V para sair</div>
+  </div>
+  <canvas id="cv" width="480" height="320"></canvas>
+  <div class="mensagem escondida" id="msg-jogo"></div>
+  <div class="controles">
+    <button class="ctrl" id="j-esq">⬅</button>
+    <button class="ctrl" id="j-dir">➡</button>
+    <button class="ctrl" id="j-pular">⬆</button>
+    <button class="ctrl" id="j-dash">💨</button>
+    <button class="ctrl" id="j-ataque">🔫</button>
+    <button class="ctrl" id="j-veiculo">🚁</button>
+    <button class="ctrl" id="j-pausa">⏸</button>
+  </div>
+</div>
+
+<!-- GAME OVER -->
+<div id="gameover" class="tela escondida">
+  <h2 style="color:#ef4444">💀 GAME OVER</h2>
+  <p style="margin:15px 0">Tonny caiu ou perdeu todas as vidas...</p>
+  <button class="btn btn-amarelo" id="b-tentar-novamente">🔄 TENTAR NOVAMENTE</button><br>
+  <button class="btn" id="b-voltar-menu">🏠 VOLTAR AO MENU</button>
+</div>
+
+<!-- FIM DE FASE -->
+<div id="fim-fase" class="tela escondida">
+  <h2 style="color:#4ade80">🎉 FASE CONCLUÍDA!</h2>
+  <div class="estrelas" id="estrelas-resultado">⭐⭐⭐</div>
+  <p>Moedas coletadas: <span id="moedas-ganhas">0</span> 🪙</p>
+  <p>Segredos encontrados: <span id="segredos-ganhos">0</span>/5</p>
+  <br>
+  <button class="btn btn-verde" id="b-proxima-fase">➡️ PRÓXIMA FASE</button><br>
+  <button class="btn btn-amarelo" id="b-repetir-fase">🔁 REPETIR FASE</button><br>
+  <button class="btn" id="b-voltar-mapa">🗺️ MAPA</button>
+</div>
+
+<!-- FIM DA PERSEGUIÇÃO -->
+<div id="fim-perseguicao" class="tela escondida">
+  <h2 style="color:#4ade80">🎉 VOCÊ ALCANÇOU ROY!</h2>
+  <p style="margin:15px 0;line-height:1.6;text-align:left">
+    James finalmente alcança Roy e recupera o caixão...<br><br>
+    Mas Roy foge novamente antes de explicar por que roubou.<br><br>
+    Quem está no caixão? Por que Roy faria isso?<br><br>
+    <b>O mistério apenas começou...</b> 🔍🦝⚰️
+  </p>
+  <button class="btn btn-verde" id="b-continuar-historia">➡️ CONTINUAR</button>
+</div>
+
+<!-- FIM DO CAPÍTULO CÉU -->
+<div id="fim-capitulo-ceu" class="tela escondida">
+  <h2 style="color:#66ccff">☁️ CÉU DE HOLLYTONNY — CONCLUÍDO!</h2>
+  <p style="margin:15px 0;line-height:1.6">
+    Você venceu a Fortaleza Voadora e restaurou a paz nas alturas de HollyTonny!<br><br>
+    <b>Mas algo misterioso continua acontecendo abaixo nas ruas da cidade...</b> 🌙🦝⚰️
+  </p>
+  <button class="btn btn-verde" id="b-ir-perseguicao">➡️ IR PARA O ROUBO DO CAIXÃO</button>
+  <button class="btn" id="b-voltar-menu2">🏠 MENU PRINCIPAL</button>
+</div>
+
+<script>
+// SISTEMA DE SALVAMENTO
+let salvar={
+  moedas:0,
+  estrelas:0,
+  faseAtual:101,
+  faseDesbloqueada:101,
+  armas:['padrao'],
+  skins:['padrao'],
+  skinAtual:'padrao',
+  segredosEncontrados:0,
+  desafiosConcluidos:{},
+  capituloPerseguicaoCompleto:false,
+  carregar(){
+    const d=localStorage.getItem('tonnyluns_v3');
+    if(d)Object.assign(this,JSON.parse(d));
+    this.atualizarUI();
+  },
+  salvar(){
+    localStorage.setItem('tonnyluns_v3',JSON.stringify(this));
+    this.atualizarUI();
+  },
+  atualizarUI(){
+    document.getElementById('menu-moedas').textContent=this.moedas;
+    document.getElementById('menu-estrelas').textContent=this.estrelas;
+    document.getElementById('loja-moedas').textContent=this.moedas;
+  }
+};
+
+salvar.carregar();
+
+// DADOS DAS FASES DO CÉU
+const fasesCeu={
+  101:{nome:'A Subida para o Céu',tipo:'explorar',chefe:null,estrelas:{moedas:15,tempo:45,segredos:1}},
+  102:{nome:'Ilhas Flutuantes',tipo:'plataforma',chefe:null,estrelas:{moedas:20,tempo:60,segredos:2}},
+  103:{nome:'Ponte das Nuvens',tipo:'corrida',chefe:null,estrelas:{moedas:18,tempo:50,segredos:1}},
+  104:{nome:'Dirigível Abandonado',tipo:'explorar',chefe:null,estrelas:{moedas:25,tempo:70,segredos:3}},
+  105:{nome:'⚔️ Guardião das Nuvens',tipo:'chefe',chefe:'guardião',vidaChefe:100,estrelas:{moedas:30,tempo:90,segredos:0}},
+  106:{nome:'Ruínas Suspensas',tipo:'explorar',chefe:null,estrelas:{moedas:22,tempo:65,segredos:2}},
+  107:{nome:'Corrida dos Balões',tipo:'corrida',chefe:null,estrelas:{moedas:28,tempo:55,segredos:1}},
+  108:{nome:'Tempestade de HollyTonny',tipo:'desafio',chefe:null,estrelas:{moedas:35,tempo:80,segredos:2}},
+  109:{nome:'Fortaleza Voadora',tipo:'explorar',chefe:null,estrelas:{moedas:40,tempo:100,segredos:3}},
+  110:{nome:'⚔️ Senhor da Fortaleza',tipo:'chefe',chefe:'fortaleza',vidaChefe:150,estrelas:{moedas:50,tempo:120,segredos:0}}
+};
+
+// ESTADO GLOBAL DO JOGO
+let jogo={
+  fase:101,
+  vida:3,
+  moedas:0,
+  estrelas:0,
+  segredos:0,
+  tempo:0,
+  pausado:false,
+  noVeiculo:null,
+  vento:{x:0,y:0},
+  chefeAtivo:false,
+  chefeVida:100,
+  perseguicaoProgresso:0,
+  perseguicaoDistancia:100
+};
+
+let jogador={
+  x:60,y:240,w:24,h:32,vx:0,vy:0,vel:3,
+  noChao:false,puloDuplo:true,podePular:true,
+  dashCooldown:0,noAr:false,virado:1,
+  atacando:false,tempoAtaque:0
+};
+
+let teclas={esq:false,dir:false,pular:false,dash:false,atacar:false,veiculo:false};
+let plataformas=[],moedas=[],segredos=[],inimigos=[],projeteis=[],veiculos=[],nuvens=[];
+
+// FUNÇÕES AUXILIARES
+function mostrarTela(id){
+  document.querySelectorAll('.tela').forEach(t=>t.classList.add('escondida'));
+  document.getElementById('jogo').classList.add('escondida');
+  document.getElementById('perseguicao').classList.add('escondida');
+  if(id)document.getElementById(id).classList.remove('escondida');
+}
+
+function mostrarMensagem(texto,duracao=2500){
+  const el=document.getElementById('msg-jogo');
+  el.textContent=texto;
+  el.classList.remove('escondida','sair');
+  clearTimeout(window._msgTimer);
+  window._msgTimer=setTimeout(()=>{el.classList.add('sair');setTimeout(()=>el.classList.add('escondida'),300);},duracao);
+}
+
+// GERAR GRADE DE FASES
+function gerarGradeFases(){
+  const container=document.getElementById('grade-ceu');
+  container.innerHTML='';
+  for(let f=101;f<=110;f++){
+    const desbloqueado=f<=salvar.faseDesbloqueada;
+    const concluido=f<salvar.faseDesbloqueada;
+    const div=document.createElement('div');
+    div.className=`botao-fase ${desbloqueado?'desbloqueada':'bloqueada'} ${f===salvar.faseAtual?'atual':''}`;
+    div.innerHTML=`${concluido?'✅':'${desbloqueado?f:'🔒'}'}`;
+    if(desbloqueado)div.onclick=()=>iniciarFase(f);
+    container.appendChild(div);
+  }
+}
+
+// CENA DO ROUBO DO CAIXÃO
+const cenasRoubo=[
+  {sprite:'🌙',texto:'Março de 1980.<br><br>HollyTonny está silenciosa.<br>O céu está escuro...'},
+  {sprite:'🏠',texto:'James Tonny está sozinho.<br>Ele está perto de um caixão.<br>A cidade parece adormecida.'},
+  {sprite:'🦝💨',texto:'De repente...<br><br>Roy aparece do nada!'},
+  {sprite:'⚰️🦝',texto:'Sem dar explicações,<br>Roy agarra o caixão e...<br><b>ROUBOU!</b>'},
+  {sprite:'😱',texto:'James fica chocado.<br>— ESPERE! — ele grita.<br>Mas Roy já está fugindo!'},
+  {sprite:'🏃💨',texto:'James corre atrás!<br><br><b>A perseguição começa agora!</b> 🦝⚰️🏃'}
+];
+let cenaAtual=0;
+
+function atualizarCena(){
+  const cena=cenasRoubo[cenaAtual];
+  document.getElementById('cena-sprite').textContent=cena.sprite;
+  document.getElementById('cena-texto').innerHTML=cena.texto;
+}
+
+// INICIAR FASE
+function iniciarFase(numFase){
+  jogo.fase=numFase;
+  jogo.vida=3;
+  jogo.moedas=0;
+  jogo.segredos=0;
+  jogo.tempo=0;
+  jogo.pausado=false;
+  jogo.chefeAtivo=false;
+  jogo.noVeiculo=null;
+  jogo.vento={x:0,y:0};
+  
+  jogador.x=60;jogador.y=240;jogador.vx=0;jogador.vy=0;
+  jogador.noChao=false;jogador.puloDuplo=true;jogador.podePular=true;
+  
+  document.getElementById('num-fase').textContent=numFase;
+  document.getElementById('nome-fase').textContent=fasesCeu[numFase].nome;
+  document.getElementById('vida').textContent=jogo.vida;
+  document.getElementById('moedas-fase').textContent=jogo.moedas;
+  document.getElementById('barra-chefe-container').style.display='none';
+  document.getElementById('veiculo-info').style.display='none';
+  
+  gerarCenario(numFase);
+  mostrarTela(null);
+  document.getElementById('jogo').classList.remove('escondida');
+  
+  if(numFase===101)mostrarMensagem('☁️ Bem-vindo ao Céu de HollyTonny! Use ⬆️ para pular — pule de novo no ar = PULO DUPLO!',4000);
+  
+  loopJogo();
+}
+
+// GERAR CENÁRIO
+function gerarCenario(fase){
+  plataformas=[];moedas=[];segredos=[];inimigos=[];projeteis=[];veiculos=[];nuvens=[];
+  
+  // Nuvens de fundo
+  for(let i=0;i<8;i++)nuvens.push({x:Math.random()*600-60,y:40+Math.random()*180,w:60+Math.random()*80,vx:-0.1-Math.random()*0.15});
+  
+  // Chão base
+  plataformas.push({x:0,y:300,w:120,h:20,tipo:'solo'});
+  
+  if(fase>=101&&fase<=110){
+    // Ilhas flutuantes
+    const ilhas=[
+      {x:100,y:250,w:70,h:16},{x:220,y:210,w:80,h:16},{x:350,y:170,w:60,h:16},
+      {x:180,y:140,w:90,h:16},{x:420,y:230,w:75,h:16},{x:280,y:100,w:100,h:16},
+      {x:50,y:160,w:55,h:16},{x:400,y:120,w:65,h:16}
+    ];
+    ilhas.forEach(i=>plataformas.push({...i,tipo:'ilha'}));
+    
+    // Pontes
+    plataformas.push({x:170,y:250,w:50,h:8,tipo:'ponte'});
+    plataformas.push({x:280,y:210,w:70,h:8,tipo:'ponte'});
+    
+    // Plataforma móvel (fase 103+)
+    if(fase>=103){
+      plataformas.push({x:300,y:180,w:50,h:12,tipo:'movel',inicioX:300,fimX:400,vel:0.5,dir:1});
+    }
+    
+    // Plataforma que desaparece (fase 104+)
+    if(fase>=104){
+      plataformas.push({x:150,y:180,w:50,h:12,tipo:'desaparece',visivel:true,timer:0});
+    }
+    
+    // Torres e ruínas
+    if(fase>=106){
+      plataformas.push({x:380,y:80,w:80,h:15,tipo:'ruina'});
+    }
+    
+    // Moedas espalhadas
+    const posMoedas=[{x:135,y:230},{
